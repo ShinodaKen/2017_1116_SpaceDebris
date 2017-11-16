@@ -12,7 +12,7 @@ public class GameMain : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
-        SceneManager.LoadSceneAsync(m_GameMainSceneId, LoadSceneMode.Additive);
+        SceneManager.LoadSceneAsync("Title", LoadSceneMode.Additive);
     }
 
     // Update is called once per frame
@@ -29,6 +29,11 @@ public class GameMain : MonoBehaviour
             m_dbgStartResult = false;
         }
 
+        if (Globals.GetInstance().m_bStartGame)
+        {
+            Globals.GetInstance().m_bStartGame = false;
+            StartCoroutine(startGame());
+        }
         if (Globals.GetInstance().m_bStartGameOver)
         {
             Globals.GetInstance().m_bPauseGame = true;
@@ -59,13 +64,40 @@ public class GameMain : MonoBehaviour
         }
     }
 
+    private IEnumerator startGame()
+    {
+        Globals.GetInstance().m_bFadeIn = false;
+        Globals.GetInstance().m_bFadeEnd = false;
+        yield return SceneManager.LoadSceneAsync("Fade", LoadSceneMode.Additive);
+
+        while (!Globals.GetInstance().m_bFadeEnd)
+        {
+            yield return null;
+        }
+
+        yield return SceneManager.UnloadSceneAsync("Title");
+
+        yield return SceneManager.UnloadSceneAsync("Fade");
+
+        Globals.GetInstance().m_bFadeIn = true;
+        Globals.GetInstance().m_bFadeEnd = false;
+        yield return SceneManager.LoadSceneAsync("Fade", LoadSceneMode.Additive);
+
+        yield return SceneManager.LoadSceneAsync(m_GameMainSceneId, LoadSceneMode.Additive);
+
+        while (!Globals.GetInstance().m_bFadeEnd)
+        {
+            yield return null;
+        }
+    }
+
     private IEnumerator startGameOver()
     {
         Debug.LogFormat("{0}", "startGameOver");
 
         Globals.GetInstance().m_bFadeIn = false;
         Globals.GetInstance().m_bFadeEnd = false;
-        yield return SceneManager.LoadSceneAsync("fade", LoadSceneMode.Additive);
+        yield return SceneManager.LoadSceneAsync("Fade", LoadSceneMode.Additive);
 
         while (!Globals.GetInstance().m_bFadeEnd)
         {
@@ -77,7 +109,7 @@ public class GameMain : MonoBehaviour
             yield return SceneManager.UnloadSceneAsync(m_GameMainSceneId);
         }
 
-        yield return SceneManager.UnloadSceneAsync("fade");
+        yield return SceneManager.UnloadSceneAsync("Fade");
 
         yield return SceneManager.LoadSceneAsync("GameOver", LoadSceneMode.Additive);
         while (SceneManager.sceneCount > 1)

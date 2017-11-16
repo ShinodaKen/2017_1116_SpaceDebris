@@ -5,6 +5,7 @@ using UnityEngine;
 public class Globals
 {
     public bool m_bPauseGame { get; set; }
+    public bool m_bStartGame { get; set; }
     public bool m_bStartResult { get; set; }
     public bool m_bEndResult { get; set; }
     public bool m_bStartGameOver { get; set; }
