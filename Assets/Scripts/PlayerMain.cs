@@ -2,27 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMain : MonoBehaviour 
+public class PlayerMain : MonoBehaviour
 {
     [SerializeField]
     protected GameObject m_player;
-    private Animator m_playerAnimator;
+    protected Animator m_playerAnimator;
 
     [SerializeField]
-    protected bool m_bGrab = false;
+    protected Transform m_sceneRoot;
+
+    protected GameObject m_grabedObject;
+
+    [SerializeField]
+    protected bool m_isGrabing = false;
 
     [SerializeField]
     protected bool m_isFlying = false;
 
+    protected float m_orgMass;
+
+    protected bool m_isPause = false;
+
     // Use this for initialization
     void Start()
     {
+        attachRigidbody();
+        m_orgMass = GetComponent<Rigidbody>().mass;
         m_playerAnimator = m_player.GetComponent<Animator>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (Globals.GetInstance().m_bPauseGame) return;
+
         float mass = 1.0f;
         float f = 1.0f;
         float t = 1.0f;
@@ -37,6 +50,13 @@ public class PlayerMain : MonoBehaviour
         Vector3 g_pos = transform.position;
         Vector3 f_at = m_player.transform.position - forward * 0.5f;
         Rigidbody rigidbody = GetComponent<Rigidbody>();
+
+        if (rigidbody == null)
+        {
+            attachRigidbody();
+            return;
+        }
+
         if (Input.GetKey(KeyCode.A))
         {
             d_force += forward * f;
@@ -73,36 +93,69 @@ public class PlayerMain : MonoBehaviour
             rigidbody.AddForceAtPosition(right * f, f_at);
         }
 
-        Vector3 anglarVelocity = rigidbody.angularVelocity;
-        anglarVelocity.x = anglarVelocity.z = 0;
-        rigidbody.angularVelocity = anglarVelocity;
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (m_grabedObject)
+            {
+                StartCoroutine(ungrabDebris());
+            }
+        }
+
+        Vector3 angularVelocity = rigidbody.angularVelocity;
+        angularVelocity.x = angularVelocity.z = 0;
 
         Vector3 velocity = rigidbody.velocity;
         velocity.z = 0;
-        rigidbody.velocity = velocity;
 
-        Vector3 angles = transform.eulerAngles;
-        angles.x = angles.z = 0;
+        if (!m_isFlying)
+        {
+            const float minVelocity = 0.1f;
+            const float minAngularVelocity = 0.1f;
+
+            velocity *= (1.0f - Time.deltaTime);
+            angularVelocity *= (1.0f - Time.deltaTime);
+
+            //if (velocity.magnitude < minVelocity)
+            //{
+            //    velocity = Vector3.zero;
+            //}
+            //if (angularVelocity.magnitude < minAngularVelocity)
+            //{
+            //    angularVelocity = Vector3.zero;
+            //}
+            if ((angularVelocity.magnitude < minVelocity) && (velocity.magnitude < minAngularVelocity))
+            {
+                if (m_grabedObject)
+                {
+                    Destroy(gameObject.GetComponent<Rigidbody>());
+                    m_grabedObject.transform.SetParent(m_sceneRoot);
+                    m_grabedObject = null;
+                }
+                m_isGrabing = false;
+            }
+        }
+
+        rigidbody.velocity = velocity;
+        rigidbody.angularVelocity = angularVelocity;
+
+        //Vector3 angles = transform.eulerAngles;
+        //angles.x = angles.z = 0;
         //transform.eulerAngles = angles;
 
-        Vector3 position = transform.position;
-        position.z = 0;
+        //Vector3 position = transform.position;
+        //position.z = 0;
         //transform.position = position;
 
-        if (m_isFlying && (anglarVelocity.magnitude < 0.1f) && (velocity.magnitude < 0.1f))
-        {
-            m_bGrab = false;
-        }
         m_playerAnimator.SetBool("isFlying", m_isFlying);
-        m_playerAnimator.SetBool("isGrabing", m_bGrab);
+        m_playerAnimator.SetBool("isGrabing", m_isGrabing);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.tag != "Debris") return;
-        if (m_bGrab) return;
+        if (m_isGrabing) return;
 
-        Debug.LogFormat("{0}", "Collide");
+        Debug.LogFormat("{0} {1}", "Collide", collision);
 
         Rigidbody myRigidbody = GetComponent<Rigidbody>();
 
@@ -110,16 +163,18 @@ public class PlayerMain : MonoBehaviour
         if (myRigidbody.angularVelocity.magnitude > 1) return;
 
         Rigidbody opRigidbody = collision.gameObject.GetComponent<Rigidbody>();
+        if (opRigidbody == null) return;
+
         Vector3 angularVelocity = opRigidbody.angularVelocity;
 
         myRigidbody.mass += opRigidbody.mass;
-        //opRigidbody.isKinematic = true;
-        Destroy(opRigidbody);
-        collision.gameObject.transform.SetParent(transform);
-
         myRigidbody.AddTorque(angularVelocity * opRigidbody.mass / myRigidbody.mass, ForceMode.VelocityChange);
 
-        m_bGrab = true;
+        m_grabedObject = collision.gameObject;
+        m_grabedObject.transform.SetParent(transform);
+        m_grabedObject.GetComponent<DebrisMain>().Grabbed();
+
+        m_isGrabing = true;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -136,5 +191,53 @@ public class PlayerMain : MonoBehaviour
     {
         if (other.gameObject.tag != "Floor") return;
         m_isFlying = true;
+    }
+
+    protected Rigidbody attachRigidbody()
+    {
+        Rigidbody rigid = gameObject.AddComponent<Rigidbody>();
+        if (rigid)
+        {
+            rigid.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            rigid.useGravity = false;
+        }
+        return rigid;
+    }
+
+    protected IEnumerator ungrabDebris()
+    {
+        GameObject grabbed = m_grabedObject;
+        m_grabedObject.transform.SetParent(m_sceneRoot);
+        m_grabedObject.GetComponent<DebrisMain>().UnGrabbed();
+        m_grabedObject = null;
+
+        Destroy(gameObject.GetComponent<Rigidbody>());
+
+        Rigidbody myRigidbody = gameObject.GetComponent<Rigidbody>();
+        while (myRigidbody != null)
+        {
+            Debug.LogFormat("{0}", "Wait Destroy rigidbody");
+            myRigidbody = gameObject.GetComponent<Rigidbody>();
+            yield return null;
+        }
+
+        myRigidbody = gameObject.GetComponent<Rigidbody>();
+        while (myRigidbody == null)
+        {
+            Debug.LogFormat("{0}", "Wait Attach rigidbody");
+            yield return null;
+        }
+
+        Vector3 forward = m_player.transform.rotation * Vector3.forward;
+        Vector3 explode_at = m_player.transform.position + forward * 0.5f;
+
+        myRigidbody.AddExplosionForce(5.0f, explode_at, 1.0f);
+
+        Rigidbody opRigidbody = grabbed.GetComponent<Rigidbody>();
+        opRigidbody.AddExplosionForce(5.0f, explode_at, 1.0f);
+
+        yield return null;
+
+        m_isGrabing = false;
     }
 }
