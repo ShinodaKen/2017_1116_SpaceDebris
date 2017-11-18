@@ -8,10 +8,12 @@ public class GameMain : MonoBehaviour
     const int m_GameMainSceneId = 1;
     public bool m_dbgStartGameover = false;
     public bool m_dbgStartResult = false;
+    public bool m_dbgSaveResult = false;
 
     // Use this for initialization
     void Start ()
     {
+        Globals.GetInstance().m_userId = System.Guid.NewGuid().ToString();
         SceneManager.LoadSceneAsync("Title", LoadSceneMode.Additive);
     }
 
@@ -29,6 +31,14 @@ public class GameMain : MonoBehaviour
             m_dbgStartResult = false;
         }
 
+        if (m_dbgSaveResult)
+        {
+            m_dbgSaveResult = false;
+            var so = new GSSA.SpreadSheetObject("Chat");
+            so["name"] = "かつーき";
+            so["message"] = "たべないでください！";
+            so.SaveAsync();
+        }
         if (Globals.GetInstance().m_bStartGame)
         {
             Globals.GetInstance().m_bStartGame = false;
@@ -89,6 +99,7 @@ public class GameMain : MonoBehaviour
         {
             yield return null;
         }
+        yield return SceneManager.UnloadSceneAsync("Fade");
     }
 
     private IEnumerator startGameOver()
@@ -137,7 +148,14 @@ public class GameMain : MonoBehaviour
             yield return null;
         }
 
-        yield return SceneManager.LoadSceneAsync(m_GameMainSceneId, LoadSceneMode.Additive);
+        if (Globals.GetInstance().m_bRetryGame)
+        {
+            yield return SceneManager.LoadSceneAsync(m_GameMainSceneId, LoadSceneMode.Additive);
+        }
+        else
+        {
+            yield return SceneManager.LoadSceneAsync("Title", LoadSceneMode.Additive);
+        }
 
         Globals.GetInstance().m_bEndResult = true;
     }

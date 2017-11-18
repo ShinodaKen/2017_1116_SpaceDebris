@@ -32,13 +32,11 @@ public class SeqTitle : MonoBehaviour
 
             if ((time > 5) && (Random.Range(0, 100) > 97) && m_animator.GetCurrentAnimatorStateInfo(0).IsName("Sit Down Hold"))
             {
-                Debug.Log("switch");
                 m_animator.SetBool("ToIdle", true);
             }
 
             if (m_animator.GetBool("ToIdle") && m_animator.GetCurrentAnimatorStateInfo(0).IsName("Sit Down Idle"))
             {
-                Debug.Log("to false");
                 m_animator.SetBool("ToIdle", false);
                 time = 0;
             }

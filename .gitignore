@@ -1,12 +1,14 @@
 /Library/
 /UnityPackageManager/
 /Temp/
+/Assets/GSSA/
+/Assets/GSSA.meta
 /Assets/SDUnity-chan_Adventure_Action_Pack/
+/Assets/SDUnity-chan_Adventure_Action_Pack.meta
 /Assets/UnityChan/
+/Assets/UnityChan.meta
 /Assets/README_SD_UnityChan.txt
 /Assets/README_SD_UnityChan.txt.meta
-/Assets/SDUnity-chan_Adventure_Action_Pack.meta
-/Assets/UnityChan.meta
 
 
 .vs/2017_1116_SpaceDebris/v15/.suo
