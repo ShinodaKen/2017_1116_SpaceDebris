@@ -30,6 +30,19 @@ public class PlayerMain : MonoBehaviour
     [SerializeField]
     protected Slider m_hightSlider;
 
+    [SerializeField]
+    protected ParticleSystem m_ptclBack;
+    [SerializeField]
+    protected ParticleSystem m_ptclFront;
+    [SerializeField]
+    protected ParticleSystem m_ptclTop;
+    [SerializeField]
+    protected ParticleSystem m_ptclBottom;
+    [SerializeField]
+    protected ParticleSystem m_ptclLeft;
+    [SerializeField]
+    protected ParticleSystem m_ptclRight;
+
     protected float m_air = 100.0f;
     protected float m_airSupply = 0;
     protected float m_gameoverTimer = 0;
@@ -107,24 +120,32 @@ public class PlayerMain : MonoBehaviour
             d_force += forward * f * 2;
             //rigidbody.AddForceAtPosition(forward * f, f_at);
             air += 2.0f;
+            m_ptclBack.gameObject.SetActive(true);
+            if (!m_ptclBack.isPlaying) m_ptclBack.Play();
         }
         if (Input.GetMouseButton(1))
         {
             d_force -= forward * f;
             //rigidbody.AddForceAtPosition(-forward * f, f_at);
             air += 1.0f;
+            m_ptclFront.gameObject.SetActive(true);
+            if (!m_ptclFront.isPlaying) m_ptclFront.Play();
         }
         if (Input.GetKey(KeyCode.W))
         {
             d_force -= up * f;
             //rigidbody.AddForceAtPosition(-up * f, f_at);
             air += 1.0f;
+            m_ptclTop.gameObject.SetActive(true);
+            if (!m_ptclTop.isPlaying) m_ptclTop.Play();
         }
         if (Input.GetKey(KeyCode.S))
         {
             d_force += up * f;
             //rigidbody.AddForceAtPosition(up * f, f_at);
             air += 1.0f;
+            m_ptclBottom.gameObject.SetActive(true);
+            if (!m_ptclBottom.isPlaying) m_ptclBottom.Play();
         }
         if (Input.GetKey(KeyCode.A))
         //if (Input.GetKey(KeyCode.Q))
@@ -132,6 +153,8 @@ public class PlayerMain : MonoBehaviour
             d_force -= right * f;
             //rigidbody.AddForceAtPosition(-right * f, f_at);
             air += 1.0f;
+            m_ptclRight.gameObject.SetActive(true);
+            if (!m_ptclRight.isPlaying) m_ptclRight.Play();
         }
         if (Input.GetKey(KeyCode.D))
         //if (Input.GetKey(KeyCode.E))
@@ -139,6 +162,8 @@ public class PlayerMain : MonoBehaviour
             d_force += right * f;
             //rigidbody.AddForceAtPosition(right * f, f_at);
             air += 1.0f;
+            m_ptclLeft.gameObject.SetActive(true);
+            if (!m_ptclLeft.isPlaying) m_ptclLeft.Play();
         }
         rigidbody.AddForceAtPosition(d_force, f_at);
 
