@@ -11,6 +11,9 @@ public class SeqTitle : MonoBehaviour
     [SerializeField]
     protected GameObject m_mainMenu;
 
+    [SerializeField]
+    protected GameObject m_manual;
+
     // Use this for initialization
     void Start ()
     {
@@ -49,5 +52,15 @@ public class SeqTitle : MonoBehaviour
         m_mainMenu.SetActive(false);
 
         Globals.GetInstance().m_bStartGame = true;
+    }
+    public void OnClickGameManual()
+    {
+        m_mainMenu.SetActive(false);
+        m_manual.SetActive(true);
+    }
+    public void OnClickGameManualBack()
+    {
+        m_mainMenu.SetActive(true);
+        m_manual.SetActive(false);
     }
 }
