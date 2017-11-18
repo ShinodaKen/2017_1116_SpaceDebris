@@ -31,14 +31,6 @@ public class GameMain : MonoBehaviour
             m_dbgStartResult = false;
         }
 
-        if (m_dbgSaveResult)
-        {
-            m_dbgSaveResult = false;
-            var so = new GSSA.SpreadSheetObject("Chat");
-            so["name"] = "かつーき";
-            so["message"] = "たべないでください！";
-            so.SaveAsync();
-        }
         if (Globals.GetInstance().m_bStartGame)
         {
             Globals.GetInstance().m_bStartGame = false;

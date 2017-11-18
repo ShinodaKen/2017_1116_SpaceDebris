@@ -60,15 +60,23 @@ public class SeqGameResult : MonoBehaviour {
     void Start ()
     {
         m_playerAnimator = m_player.GetComponent<Animator>();
-        int animationId = Globals.GetInstance().m_bGameFail ? 3 : Random.Range(0, 100) % 2;
+        int animationId = (Globals.GetInstance().m_bGameFail || (Globals.GetInstance().m_total < 0)) ? 3 : Random.Range(0, 100) % 2;
         m_playerAnimator.SetInteger("AnimationId", animationId);
 
-        m_textValueMass.text = string.Format("{0:0.00} pts", Globals.GetInstance().m_mass);
-        m_textValueDifficulty.text = string.Format("{0:0.00} pts", Globals.GetInstance().m_difficulty);
-        m_textValueRare.text = string.Format("{0:0.00} pts", Globals.GetInstance().m_rare);
-        m_textValueCost.text = string.Format("$ {0:0.00}", Globals.GetInstance().m_cost);
-        m_textValueEtc.text = string.Format("$ {0:0.00}", Globals.GetInstance().m_etc);
-        m_textValueTotal.text = string.Format("$ {0:0.00}", Globals.GetInstance().m_total);
+        m_textValueMass.text = string.Format("{0:f} kg", Globals.GetInstance().m_mass);
+        m_textValueDifficulty.text = string.Format("{0:f} pts", Globals.GetInstance().m_difficulty);
+        m_textValueRare.text = string.Format("{0:f} pts", Globals.GetInstance().m_rare);
+        m_textValueCost.text = string.Format("$ {0:f}", Globals.GetInstance().m_cost);
+        m_textValueEtc.text = string.Format("$ {0:f}", Globals.GetInstance().m_etc);
+        m_textValueTotal.text = string.Format("$ {0:f}", Globals.GetInstance().m_total);
+
+        Globals.GetInstance().m_savedMass = Mathf.Max(Globals.GetInstance().m_mass, Globals.GetInstance().m_savedMass);
+        Globals.GetInstance().m_savedDifficulty = Mathf.Max(Globals.GetInstance().m_difficulty, Globals.GetInstance().m_savedDifficulty);
+        Globals.GetInstance().m_savedRare = Mathf.Max(Globals.GetInstance().m_rare, Globals.GetInstance().m_savedRare);
+        Globals.GetInstance().m_savedCost = Mathf.Max(Globals.GetInstance().m_cost, Globals.GetInstance().m_savedCost);
+        Globals.GetInstance().m_savedEtc = Mathf.Max(Globals.GetInstance().m_etc, Globals.GetInstance().m_savedEtc);
+        Globals.GetInstance().m_savedTotal = Mathf.Max(Globals.GetInstance().m_total, Globals.GetInstance().m_savedTotal);
+        Globals.GetInstance().m_savedTotalAll += Globals.GetInstance().m_total;
 
         m_inputFieldName.text = "吉田さん";
         m_textNetworkStatus.text = "";
@@ -211,12 +219,12 @@ public class SeqGameResult : MonoBehaviour {
         string[] postfix = { "", "kg", "pts", "pts", "", "", "", "" };
         float[] myValues =
         {
-            Globals.GetInstance().m_savedTotal,
-            Globals.GetInstance().m_savedMass,
-            Globals.GetInstance().m_savedDifficulty,
-            Globals.GetInstance().m_savedRare,
-            Globals.GetInstance().m_savedCost,
-            Globals.GetInstance().m_savedEtc,
+            Globals.GetInstance().m_total,
+            Globals.GetInstance().m_mass,
+            Globals.GetInstance().m_difficulty,
+            Globals.GetInstance().m_rare,
+            Globals.GetInstance().m_cost,
+            Globals.GetInstance().m_etc,
             Globals.GetInstance().m_savedTotalAll,
         };
 
@@ -240,10 +248,18 @@ public class SeqGameResult : MonoBehaviour {
             prevValue = value;
             m_textRankingNoList.text += rank.ToString() + "\n";
             m_textRankingNameList.text += so["name"] as string + "\n";
-            m_textRankingValueList.text += prefix[option] + " " + string.Format("{0:0.00}", value.ToString()) + " " + postfix[option] + "\n";
+            m_textRankingValueList.text += prefix[option] + " " + string.Format("{0:f}", value) + " " + postfix[option] + "\n";
+        }
+
+        if ((myRank == 0) && (query.Count < 50))
+        {
+            myRank = query.Count + 1;
+            m_textRankingNoList.text += rank.ToString() + "\n";
+            m_textRankingNameList.text += Globals.GetInstance().m_userName + "\n";
+            m_textRankingValueList.text += prefix[option] + " " + string.Format("{0:f}", myValues[option]) + " " + postfix[option] + "\n";
         }
 
         m_textMyRank.text = (myRank == 0) ? "ランキング圏外" : myRank.ToString() + "位";
-        m_textMyValue.text = prefix[option] + " " + string.Format("{0:0.00}", myValues[option]) + " " + postfix[option];
+        m_textMyValue.text = prefix[option] + " " + string.Format("{0:f}", myValues[option]) + " " + postfix[option];
     }
 }

@@ -36,10 +36,10 @@ public class Globals
     {
         get
         {
-            float m = 1.0f;
-            float d = 1.0f;
+            float m = 4.0f;
+            float d = 2.0f;
             float r = 1.0f;
-            float total = m_mass * m + m_difficulty * d + m_rare * r - m_cost + m_etc;
+            float total = Mathf.Pow(m_mass * m, m_rare * r) + m_difficulty * d - m_cost + m_etc;
             return total;
         }
     }

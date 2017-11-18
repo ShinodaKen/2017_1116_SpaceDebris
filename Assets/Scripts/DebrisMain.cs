@@ -4,15 +4,30 @@ using UnityEngine;
 
 public class DebrisMain : MonoBehaviour {
     [SerializeField]
-    protected Vector3 m_anglarVelocity = Vector3.zero;
+    public Vector3 m_velocity = Vector3.zero;
+    [SerializeField]
+    public Vector3 m_anglarVelocity = Vector3.zero;
+    [SerializeField]
+    public float m_density;
+    [SerializeField]
+    public float m_baseRarity;
     protected Rigidbody m_rigidbody;
+    protected float m_mass;
+    protected float m_distance;
+    protected float m_rare;
+
 	// Use this for initialization
 	void Start ()
     {
         attachRigidbody();
         m_rigidbody = GetComponent<Rigidbody>();
         m_rigidbody.AddRelativeTorque(m_anglarVelocity, ForceMode.VelocityChange);
-	}
+        m_rigidbody.velocity = m_velocity;
+
+        m_mass = m_rigidbody.mass;
+        m_distance = transform.position.magnitude;
+        m_rare = m_baseRarity + ((m_distance / 500.0f) * Random.Range(0.5f, 1.0f)) + Mathf.Sqrt(transform.localScale.magnitude);
+    }
 	
 	// Update is called once per frame
 	void Update ()
@@ -44,4 +59,8 @@ public class DebrisMain : MonoBehaviour {
         rigidBody.useGravity = false;
         //rigidBody.constraints.
     }
+
+    public float GetMass() { return m_mass; }
+    public float GetDistance() { return m_distance; }
+    public float GetRare() { return m_rare; }
 }
