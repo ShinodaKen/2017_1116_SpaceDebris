@@ -76,7 +76,7 @@ public class SeqGameResult : MonoBehaviour {
         Globals.GetInstance().m_savedCost = Mathf.Max(Globals.GetInstance().m_cost, Globals.GetInstance().m_savedCost);
         Globals.GetInstance().m_savedEtc = Mathf.Max(Globals.GetInstance().m_etc, Globals.GetInstance().m_savedEtc);
         Globals.GetInstance().m_savedTotal = Mathf.Max(Globals.GetInstance().m_total, Globals.GetInstance().m_savedTotal);
-        Globals.GetInstance().m_savedTotalAll += Globals.GetInstance().m_total;
+        Globals.GetInstance().m_savedTotalAll += Globals.GetInstance().m_mass;
 
         m_inputFieldName.text = "吉田さん";
         m_textNetworkStatus.text = "";
@@ -117,14 +117,14 @@ public class SeqGameResult : MonoBehaviour {
 
     IEnumerator transitionToRanking()
     {
+        m_panelRoot[0].SetActive(false);
+        m_panelRoot[1].SetActive(true);
+
         if (m_toggleSaveResult.isOn)
         {
             Globals.GetInstance().m_userName = m_inputFieldName.text;
             yield return StartCoroutine(saveResult());
         }
-
-        m_panelRoot[0].SetActive(false);
-        m_panelRoot[1].SetActive(true);
 
         m_textNetworkStatus.text = "ランキングデータ取得中";
         string[] category = { "total", "mass", "difficulty", "rare", "cost", "etc", "totalAll", "All" };
@@ -147,20 +147,23 @@ public class SeqGameResult : MonoBehaviour {
             {
                 currentOption = m_dropdownRanking.value;
 
+                m_objectMine.SetActive(false);
+                m_objectAll.SetActive(false);
                 m_textNetworkStatus.text = "ランキングデータ取得中";
                 if (currentOption == 7)
                 {
                     m_scrollView.SetActive(false);
-                    yield return query.Where("total", GSSA.SpreadSheetQuery.CompareData.CompareType.NE, 0).FindAsync();
+                    yield return query.OrderByDescending("totalAll").FindAsync();
                     m_objectMine.SetActive(false);
                     m_objectAll.SetActive(true);
 
                     float total = 0;
                     foreach (var so in query.Result)
                     {
-                        total += float.Parse(so["totalAll"] as string);
+                        total += float.Parse(so["totalAll"].ToString());
                     }
-                    m_textAllValue.text = "$ " + total as string;
+                    m_textAllValue.text = string.Format("{0:f}",total);
+                    m_textNetworkStatus.text = "";
                 }
                 else
                 {
